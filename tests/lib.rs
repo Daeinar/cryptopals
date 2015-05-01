@@ -4,6 +4,7 @@ use cryptopals::c01::*;
 use cryptopals::c02::*;
 use cryptopals::c03::*;
 use cryptopals::c04::*;
+use cryptopals::c05::*;
 
 #[test]
 fn test_c01() {
@@ -25,9 +26,16 @@ fn test_c03() {
     let x = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     let v = analyse_frequency(&unhex(x));
     let k = v[0].0; // recover key
-    let d = xor(&unhex(x),&vec![k; x.len()/2]); // decrypted bytes
+    let d = xor(&unhex(x),&vec![k; x.len()/2]); // decrypt bytes
     let f = ascii(&d); // filter non-printable ASCII
     assert_eq!(String::from_utf8(f).unwrap(), "cOOKINGmcSLIKEAPOUNDOFBACON");
+}
+
+#[test]
+fn test_c04() {
+    let x = analyse_file();
+    let y = "nOWTHATTHEPARTYISJUMPING*";
+    assert_eq!(x,y);
 }
 
 #[test]
