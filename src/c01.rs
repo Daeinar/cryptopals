@@ -32,7 +32,7 @@ pub fn unhex(x: &str) -> Vec<u8> {
 
 
 pub fn hex(x: &[u8]) -> String {
-    (0..x.len()).map(|i| format!("{:x}", x[i])).collect::<Vec<String>>().concat()
+    (0..x.len()).map(|i| format!("{:02x}", x[i])).collect::<Vec<String>>().concat()
 }
 
 // filter non-printable ASCII bytes
