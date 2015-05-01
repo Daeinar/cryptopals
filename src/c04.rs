@@ -17,7 +17,7 @@ pub fn analyse_file() -> String {
         let d = xor(&unhex(&x),&vec![k; x.len()/2]); // decrypt bytes
         let f = ascii(&d); // filter non-printable ASCII
         // assume that english text contains the highest number of printable ASCII
-        if f.len() > s.len() {
+        if f.len() >= s.len() {
             s = String::from_utf8(f).unwrap();
         }
     }
