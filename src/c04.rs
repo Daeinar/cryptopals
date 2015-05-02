@@ -6,12 +6,16 @@ use c01::*;
 use c02::*;
 use c03::*;
 
-pub fn analyse_file() -> String {
-    let file = match File::open("src/c04.txt") { Ok(file) => file, Err(..) => panic!("could not open file"), };
+pub fn read_file(path: &str) -> Vec<String> {
+    let file = match File::open(path) { Ok(f) => f, Err(..) => panic!("could not open file"), };
     let reader = BufReader::new(&file);
+    reader.lines().filter_map(|result| result.ok()).collect::<Vec<String>>()
+}
+
+
+pub fn frequency_analyse_list(lines: &Vec<String>) -> String {
     let mut s = String::new();
-    for line in reader.lines() {
-        let x = match line { Ok(l) => l, Err(..) => panic!("cannot read line"), };
+    for x in lines {
         let v = analyse_frequency(&unhex(&x));
         let k = v[0].0; // recover key
         let d = xor(&unhex(&x),&vec![k; x.len()/2]); // decrypt bytes

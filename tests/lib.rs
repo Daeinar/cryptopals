@@ -5,12 +5,13 @@ use cryptopals::c02::*;
 use cryptopals::c03::*;
 use cryptopals::c04::*;
 use cryptopals::c05::*;
+use cryptopals::c06::*;
 
 #[test]
 fn test_c01() {
     let x = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
     let y = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
-    assert_eq!(y, base64(&unhex(x)));
+    assert_eq!(y, encode_base64(&unhex(x)));
 }
 
 #[test]
@@ -33,7 +34,9 @@ fn test_c03() {
 
 #[test]
 fn test_c04() {
-    let x = analyse_file();
+    let path = "src/c04.txt";
+    let v = read_file(&path);
+    let x = frequency_analyse_list(&v);
     let y = "nOWTHATTHEPARTYISJUMPING*";
     assert_eq!(x,y);
 }
@@ -45,4 +48,13 @@ fn test_c05() {
     let c = hex(&repeating_key_xor(&m.as_bytes(), &k.as_bytes()));
     let d = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
     assert_eq!(c,d);
+}
+
+#[test]
+fn test_c06() {
+    let x = "this is a test";
+    let y = "wokka wokka!!!";
+    assert_eq!(37, hamming_distance(&x.as_bytes(),&y.as_bytes()))
+    let y = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
+    assert_eq!(y,encode_base64(&decode_base64(&y)));
 }

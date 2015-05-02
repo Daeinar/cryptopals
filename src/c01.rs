@@ -1,7 +1,7 @@
 static CHARS: &'static[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-// base64 encoding of a byte vector
-pub fn base64(x: &[u8]) -> String {
+// encode byte vector as base64 string
+pub fn encode_base64(x: &[u8]) -> String {
     let mut s = Vec::with_capacity((x.len()/3)*4);
     for b in x.chunks(3) {
         let y = match b.len() {
@@ -14,6 +14,26 @@ pub fn base64(x: &[u8]) -> String {
         for _ in 0..3-b.len() { s.push(b'='); }
     }
     String::from_utf8(s).unwrap()
+}
+
+// decode base64 string to byte vector (TODO: handle padding)
+pub fn decode_base64(x: &str) -> Vec<u8> {
+    assert!(x.len()%4 == 0);
+    fn convert(byte: u8) -> u8 {
+        match byte {
+            b'A'...b'Z' =>  0 + byte - b'A',
+            b'a'...b'z' => 26 + byte - b'a',
+            b'0'...b'9' => 52 + byte - b'0',
+            b'+' => 62,
+            b'/' => 63,
+            _ => panic!("invalid base64 character")
+        }
+    }
+    x.as_bytes().chunks(4).map(|b| {
+            let a = ((convert(b[0]) as u32) << 18) | ((convert(b[1]) as u32) << 12) |
+                    ((convert(b[2]) as u32) <<  6) | ((convert(b[3]) as u32) <<  0);
+            vec![(a >> 16) as u8, (a >>  8) as u8, (a >>  0) as u8]
+            }).collect::<Vec<Vec<u8>>>().concat()
 }
 
 
