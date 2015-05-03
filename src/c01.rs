@@ -16,7 +16,7 @@ pub fn encode_base64(x: &[u8]) -> String {
     String::from_utf8(s).unwrap()
 }
 
-// decode base64 string to byte vector (TODO: handle padding)
+// decode base64 string to byte vector
 pub fn decode_base64(x: &str) -> Vec<u8> {
     assert!(x.len()%4 == 0);
     fn convert(byte: u8) -> u8 {
@@ -29,11 +29,20 @@ pub fn decode_base64(x: &str) -> Vec<u8> {
             _ => panic!("invalid base64 character")
         }
     }
+    fn is_padding(byte: u8) -> u8 {
+        match byte {
+            b'=' => 1,
+            _ => 0
+        }
+    }
     x.as_bytes().chunks(4).map(|b| {
-            let a = ((convert(b[0]) as u32) << 18) | ((convert(b[1]) as u32) << 12) |
-                    ((convert(b[2]) as u32) <<  6) | ((convert(b[3]) as u32) <<  0);
-            vec![(a >> 16) as u8, (a >>  8) as u8, (a >>  0) as u8]
-            }).collect::<Vec<Vec<u8>>>().concat()
+            let n = is_padding(b[2]) + is_padding(b[3]); // count number of padding bytes
+            match n {
+                0 => vec![(convert(b[0]) << 2) | (convert(b[1]) >> 4), (convert(b[1]) << 4) | (convert(b[2]) >> 2), (convert(b[2]) << 6) | convert(b[3])],
+                1 => vec![(convert(b[0]) << 2) | (convert(b[1]) >> 4), (convert(b[1]) << 4) | (convert(b[2]) >> 2)],
+                2 => vec![(convert(b[0]) << 2) | (convert(b[1]) >> 4)],
+                _ => panic!("unknown number of padding bytes")
+            }}).collect::<Vec<Vec<u8>>>().concat()
 }
 
 
@@ -55,7 +64,7 @@ pub fn hex(x: &[u8]) -> String {
     (0..x.len()).map(|i| format!("{:02x}", x[i])).collect::<Vec<String>>().concat()
 }
 
-// filter non-printable ASCII bytes
+// filters non-printable ASCII bytes
 pub fn ascii(x: &[u8]) -> Vec<u8> {
     x.iter().map(|y| y.clone()).filter(|&y| 31 < y && y < 127).collect::<Vec<u8>>()
 }

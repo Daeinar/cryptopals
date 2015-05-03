@@ -54,7 +54,6 @@ fn test_c05() {
 fn test_c06() {
     let x = "this is a test";
     let y = "wokka wokka!!!";
-    assert_eq!(37, hamming_distance(&x.as_bytes(),&y.as_bytes()))
-    let y = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
-    assert_eq!(y,encode_base64(&decode_base64(&y)));
+    assert_eq!(37, hamming_distance(&x.as_bytes(),&y.as_bytes())); // test Hamming distance and Hamming weight
+    assert_eq!(x,String::from_utf8(decode_base64(&encode_base64(&x.as_bytes()))).unwrap()); // test base64 encoding and decoding
 }
