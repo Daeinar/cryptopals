@@ -6,6 +6,7 @@ use cryptopals::c03::*;
 use cryptopals::c04::*;
 use cryptopals::c05::*;
 use cryptopals::c06::*;
+use cryptopals::c07::*;
 
 #[test]
 fn test_c01() {
@@ -66,3 +67,13 @@ fn test_c06() {
                            0x47, 0x00, 0x54, 0x48, 0x45, 0x00,
                            0x4E, 0x4F, 0x49, 0x53, 0x45]);
 }
+
+#[test]
+fn test_c07() {
+    let key = b"YELLOW SUBMARINE";
+    let path = "src/c07.txt";
+    let v = read_file(&path).concat();
+    let ct = decode_base64(&v); // decode ciphertext
+    assert_eq!(&ct, &aes128_ecb_encrypt(key, &aes128_ecb_decrypt(key, &ct)));
+}
+

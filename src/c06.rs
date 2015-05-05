@@ -52,7 +52,7 @@ pub fn analyse_vigenere(ct: &[u8]) -> Vec<u8> {
         let mut key_candidate = Vec::new();
         for i in 0..ks {
             let f = analyse_frequency(&blocks[i]);
-            key_candidate.push(f[0].0); // assume key byte is the highest occuring byte
+            key_candidate.push(f[0].0); // assume key byte is the most frequent occuring byte
             let pt_block = xor(&blocks[i],&vec![key_candidate[i] as u8; blocks[i].len()]);
             let pt_ascii = ascii(&pt_block);
             sum += pt_ascii.len();

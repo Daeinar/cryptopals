@@ -2,3 +2,6 @@
 name = "cryptopals"
 version = "0.1.0"
 authors = ["Philipp Jovanovic <philipp@jovanovic.io>"]
+
+[dependencies.openssl]
+git = "https://github.com/sfackler/rust-openssl.git"
