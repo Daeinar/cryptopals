@@ -69,3 +69,9 @@ pub fn ascii(x: &[u8]) -> Vec<u8> {
     x.iter().map(|y| y.clone()).filter(|&y| 31 < y && y < 127).collect::<Vec<u8>>()
 }
 
+pub fn print_bytes(x: &[u8]) {
+    for i in 0..x.len() {
+        print!("{:02X} ", x[i]);
+    }
+    println!("");
+}
