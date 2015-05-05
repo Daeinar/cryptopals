@@ -7,6 +7,7 @@ use cryptopals::c04::*;
 use cryptopals::c05::*;
 use cryptopals::c06::*;
 use cryptopals::c07::*;
+use cryptopals::c08::*;
 
 #[test]
 fn test_c01() {
@@ -44,9 +45,9 @@ fn test_c04() {
 
 #[test]
 fn test_c05() {
-    let m = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
-    let k = "ICE";
-    let c = hex(&repeating_key_xor(&m.as_bytes(), &k.as_bytes()));
+    let m = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
+    let k = b"ICE";
+    let c = hex(&repeating_key_xor(m, k));
     let d = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
     assert_eq!(c,d);
 }
@@ -75,5 +76,12 @@ fn test_c07() {
     let v = read_file(&path).concat();
     let ct = decode_base64(&v); // decode ciphertext
     assert_eq!(&ct, &aes128_ecb_encrypt(key, &aes128_ecb_decrypt(key, &ct)));
+}
+
+#[test]
+fn test_c08() {
+    let path = "src/c08.txt";
+    let v = read_file(&path);
+    assert_eq!(132, detect_aes_ecb(v));
 }
 
