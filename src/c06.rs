@@ -20,7 +20,6 @@ pub fn determine_keysizes(x: &[u8], n: usize) -> Vec<usize> {
              (hamming_distance(&x[4*i..5*i],&x[5*i..6*i]) as f64 ) / (i as f64) +
              (hamming_distance(&x[6*i..7*i],&x[8*i..9*i]) as f64 ) / (i as f64)) / 4.0
             )).collect::<Vec<(usize,f64)>>();
-
     // do a simple insertion sort (note: sort_by() does not work for a f32/f64 vector)
     for i in 1..d.len() {
         let x = d[i];
@@ -31,7 +30,6 @@ pub fn determine_keysizes(x: &[u8], n: usize) -> Vec<usize> {
         }
         d[j] = x
     }
-
     (0..n).map(|i| d[i].0).collect::<Vec<usize>>()
 }
 
@@ -45,12 +43,9 @@ pub fn transpose(x: &[u8], n: usize) -> Vec<Vec<u8>> {
 }
 
 pub fn analyse_vigenere(ct: &[u8]) -> Vec<u8> {
-
     let keysizes = determine_keysizes(&ct, 10); // get smallest 10 candidate key sizes
-
     let mut max_sum = 0;
     let mut key = Vec::new();
-
     for ks in keysizes {
         let blocks = transpose(&ct, ks);
         let mut sum = 0;
@@ -62,13 +57,11 @@ pub fn analyse_vigenere(ct: &[u8]) -> Vec<u8> {
             let pt_ascii = ascii(&pt_block);
             sum += pt_ascii.len();
         }
-
         // evaluate
         if sum >= max_sum {
             max_sum = sum;
             key = key_candidate;
         }
     }
-
     key
 }
