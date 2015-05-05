@@ -53,7 +53,6 @@ fn test_c05() {
 #[test]
 fn test_c06() {
 
-    // steps 1 & 2
     let x = "this is a test";
     let y = "wokka wokka!!!";
     assert_eq!(37, hamming_distance(&x.as_bytes(),&y.as_bytes()));
@@ -61,62 +60,16 @@ fn test_c06() {
     // test base64 encoding and decoding
     assert_eq!(x,String::from_utf8(decode_base64(&encode_base64(&x.as_bytes()))).unwrap());
 
-    // setps 3 & 4
     let path = "src/c06.txt";
     let v = read_file(&path).concat();
     let ct = decode_base64(&v); // decode ciphertext
-    let keysizes = determine_keysizes(&ct, 10); // get smallest 10 candidate key sizes
 
-    // steps 5 to 8
-    let l = ct.len();
-    let mut max_sum = 0;
-    let mut key = Vec::new();
-    let mut result = Vec::new();
-
-    for ks in keysizes {
-        let mut buffer = vec![0u8; l];
-        let blocks = transpose(&ct, ks);
-        let mut sum = 0;
-        let mut key_candidate = Vec::new();
-        for i in 0..ks {
-            let f = analyse_frequency(&blocks[i]);
-            key_candidate.push(f[0].0); // assume key byte is the highest occuring byte
-            let pt_block = xor(&blocks[i],&vec![key_candidate[i] as u8; blocks[i].len()]);
-            let pt_ascii = ascii(&pt_block);
-            sum += pt_ascii.len();
-
-            // sort back bytes
-            for j in 0..pt_block.len() {
-                buffer[ks*j+i] = pt_block[j];
-            }
-        }
-
-        // evaluate
-        if sum >= max_sum {
-            max_sum = sum;
-            key = key_candidate;
-            result = buffer;
-        }
-    }
-
-    // beautification of the plaintext
-    for i in 0..result.len() {
-        let byte = match result[i] {
-            0x07 => 0x27,
-            0x70 => 0x50,
-            0x7F => 0x20,
-            0x00...0x1F => 0x20,
-            _ => result[i]
-        };
-        result[i] = byte;
-    }
+    // steps 3 to 8
+    let key = analyse_vigenere(&ct);
 
     assert_eq!(&key, &vec![0x74, 0x45, 0x52, 0x4D, 0x49, 0x4E,
                            0x41, 0x54, 0x4F, 0x52, 0x00, 0x78,
                            0x1A, 0x00, 0x62, 0x52, 0x49, 0x4E,
                            0x47, 0x00, 0x54, 0x48, 0x45, 0x00,
                            0x4E, 0x4F, 0x49, 0x53, 0x45]);
-
-    //println!("plaintext: {}", String::from_utf8(result).unwrap())
-
 }

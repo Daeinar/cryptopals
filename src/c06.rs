@@ -1,3 +1,7 @@
+use c01::*;
+use c02::*;
+use c03::*;
+
 pub fn hamming_distance(x: &[u8], y: &[u8]) -> u32 {
     assert_eq!(x.len(), y.len());
     (0..x.len()).map(|i| hamming_weight(x[i] ^ y[i]) as u32).fold(0, |mut a, b| {a += b; a})
@@ -38,4 +42,33 @@ pub fn transpose(x: &[u8], n: usize) -> Vec<Vec<u8>> {
         y[i%n].push(x[i]);
     }
     y
+}
+
+pub fn analyse_vigenere(ct: &[u8]) -> Vec<u8> {
+
+    let keysizes = determine_keysizes(&ct, 10); // get smallest 10 candidate key sizes
+
+    let mut max_sum = 0;
+    let mut key = Vec::new();
+
+    for ks in keysizes {
+        let blocks = transpose(&ct, ks);
+        let mut sum = 0;
+        let mut key_candidate = Vec::new();
+        for i in 0..ks {
+            let f = analyse_frequency(&blocks[i]);
+            key_candidate.push(f[0].0); // assume key byte is the highest occuring byte
+            let pt_block = xor(&blocks[i],&vec![key_candidate[i] as u8; blocks[i].len()]);
+            let pt_ascii = ascii(&pt_block);
+            sum += pt_ascii.len();
+        }
+
+        // evaluate
+        if sum >= max_sum {
+            max_sum = sum;
+            key = key_candidate;
+        }
+    }
+
+    key
 }
