@@ -9,6 +9,7 @@ use cryptopals::c06::*;
 use cryptopals::c07::*;
 use cryptopals::c08::*;
 use cryptopals::c09::*;
+use cryptopals::c10::*;
 
 #[test]
 fn test_c01() {
@@ -93,3 +94,13 @@ fn test_c09() {
     assert_eq!("YELLOW SUBMARINE\x04\x04\x04\x04", String::from_utf8(y).unwrap());
 }
 
+#[test]
+fn test_c10() {
+    let key = b"YELLOW SUBMARINE";
+    let iv = b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    let path = "src/c10.txt";
+    let v = read_file(&path).concat();
+    let ct = decode_base64(&v);
+    let pt = aes128_cbc_decrypt(key, iv, &ct);
+    assert_eq!(ct, aes128_cbc_encrypt(key, iv, &pt));
+}
