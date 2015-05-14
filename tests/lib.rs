@@ -8,6 +8,7 @@ use cryptopals::c05::*;
 use cryptopals::c06::*;
 use cryptopals::c07::*;
 use cryptopals::c08::*;
+use cryptopals::c09::*;
 
 #[test]
 fn test_c01() {
@@ -83,5 +84,12 @@ fn test_c08() {
     let path = "src/c08.txt";
     let v = read_file(&path);
     assert_eq!(132, detect_aes_ecb(v));
+}
+
+#[test]
+fn test_c09() {
+    let x = "YELLOW SUBMARINE";
+    let y = pkcs7(&x.as_bytes(), 20);
+    assert_eq!("YELLOW SUBMARINE\x04\x04\x04\x04", String::from_utf8(y).unwrap());
 }
 
