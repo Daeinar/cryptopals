@@ -1,18 +1,24 @@
-use  c01::*;
-use  c02::*;
+use  c01::{unhex};
+use  c02::{xor};
 
-pub fn detect_aes_ecb(lines: Vec<String>) -> i32 {
-    let mut line = -1;
-    for i in 0..lines.len() {
-        let bytes = unhex(&lines[i]);
-        for j in 0..bytes.len()/16 {
-            for k in j+1..bytes.len()/16 {
-                if &vec![0u8; 16] == &xor(&bytes[16*j..16*(j+1)],&bytes[16*k..16*(k+1)]) {
-                    line = i as i32;
-                    break;
-                }
+pub fn is_ecb_ciphertext(x: &[u8], b: usize) -> bool {
+    for i in 0..x.len()/b {
+        for j in i+1..x.len()/b {
+            if &vec![0u8; b] == &xor(&x[b*i..b*(i+1)],&x[b*j..b*(j+1)]) {
+                return true;
             }
         }
     }
-    line
+    false
+}
+
+
+pub fn find_ecb(lines: Vec<String>, b: usize) -> i32 {
+    for i in 0..lines.len() {
+        let bytes = unhex(&lines[i]);
+        if is_ecb_ciphertext(&bytes, b) {
+            return i as i32;
+        }
+    }
+    -1
 }

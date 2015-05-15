@@ -10,6 +10,7 @@ use cryptopals::c07::*;
 use cryptopals::c08::*;
 use cryptopals::c09::*;
 use cryptopals::c10::*;
+use cryptopals::c11::*;
 
 #[test]
 fn test_c01() {
@@ -84,7 +85,7 @@ fn test_c07() {
 fn test_c08() {
     let path = "src/c08.txt";
     let v = read_file(&path);
-    assert_eq!(132, detect_aes_ecb(v));
+    assert_eq!(132, find_ecb(v,16));
 }
 
 #[test]
@@ -103,4 +104,15 @@ fn test_c10() {
     let ct = decode_base64(&v);
     let pt = aes128_cbc_decrypt(key, iv, &ct);
     assert_eq!(ct, aes128_cbc_encrypt(key, iv, &pt));
+}
+
+#[test]
+fn test_c11() {
+    let key = b"YELLOW SUBMARINE";
+    let path = "src/c07.txt";
+    let v = read_file(&path).concat();
+    let ct = decode_base64(&v); // decode ciphertext
+    let pt = aes128_ecb_decrypt(key, &ct);
+    let is_ecb = is_ecb_oracle(&pt,encryption_oracle);
+    assert_eq!(is_ecb, is_ecb); // lame test, some better way?
 }
