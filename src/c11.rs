@@ -11,7 +11,7 @@ pub fn encryption_oracle(x: &[u8]) -> Vec<u8> {
     let mut rng = thread_rng();
 
     // random 16-byte key
-    let mut k = [0u8; 16];
+    let mut k = vec![0u8; 16];
     rng.fill_bytes(&mut k);
 
     // add random padding before and after message
