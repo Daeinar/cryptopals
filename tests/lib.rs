@@ -11,6 +11,7 @@ use cryptopals::c08::*;
 use cryptopals::c09::*;
 use cryptopals::c10::*;
 use cryptopals::c11::*;
+use cryptopals::c12::*;
 
 #[test]
 fn test_c01() {
@@ -115,4 +116,28 @@ fn test_c11() {
     let pt = aes128_ecb_decrypt(key, &ct);
     let is_ecb = is_ecb_oracle(&pt,encryption_oracle);
     assert_eq!(is_ecb, is_ecb); // lame test, some better way?
+}
+
+#[test]
+fn test_c12() {
+    let pt = decode_base64("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK");
+    let oracle = ECBOracle::new(&pt); // set ECB oracle and "unknown" plaintext
+    let bs = 16; // block size
+    let mut rpt = Vec::new(); // recovered plaintext
+    for i in 0..pt.len() {
+        let mut block = vec![0x00 as u8; bs - i%bs - 1]; // set input block
+        let c = oracle.encrypt(&block); // query ECB_Oracle(your_string || unknown_string)
+        block.extend(rpt.clone()); // prepare input block
+        block.push(0x00);
+        let l = i/16; // determine current block number
+        for j in 0..255 { // guess last byte
+            block[16*l+15] = j as u8;
+            let d = oracle.encrypt(&block);
+            if hex(&c[16*l..16*(l+1)]) == hex(&d[16*l..16*(l+1)]) {
+                rpt.push(j as u8);
+                break;
+            }
+        }
+    }
+    assert_eq!(pt,rpt);
 }
