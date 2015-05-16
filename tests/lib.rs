@@ -12,6 +12,7 @@ use cryptopals::c09::*;
 use cryptopals::c10::*;
 use cryptopals::c11::*;
 use cryptopals::c12::*;
+use cryptopals::c13::*;
 
 #[test]
 fn test_c01() {
@@ -140,4 +141,22 @@ fn test_c12() {
         }
     }
     assert_eq!(pt,rpt);
+}
+
+#[test]
+fn test_c13() {
+    let v: Vec<u8> = Vec::new(); // dummy plaintext
+    let oracle = ECBOracle::new(&v);
+    let profile = profile_for("foo@bar.deadmin              "); // create profile: note the padding with spaces
+    let c = oracle.encrypt(&profile.as_bytes()); // encrypt profile
+    // rearrange ciphertext blocks
+    let mut mod_c: Vec<u8> = Vec::new();
+    mod_c.extend(c[0..16].to_vec());
+    mod_c.extend(c[32..48].to_vec());
+    mod_c.extend(c[16..32].to_vec());
+    // decrypt plaintext
+    let p = String::from_utf8(oracle.decrypt(&mod_c)).unwrap();
+    // parse profile
+    let hmap = parse(&p);
+    assert_eq!(hmap["role"].replace(" ",""),"admin");
 }
