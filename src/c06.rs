@@ -13,7 +13,7 @@ pub fn hamming_weight(x: u8) -> u8 {
         (y & 0x0f ) + ((y >>  4) & 0x0f )
 }
 
-pub fn determine_keysizes(x: &[u8], n: usize) -> Vec<usize> {
+fn determine_keysizes(x: &[u8], n: usize) -> Vec<usize> {
     let mut d = (2..40).map(|i| (i,
             ((hamming_distance(&x[0*i..1*i],&x[1*i..2*i]) as f64 ) / (i as f64) +
              (hamming_distance(&x[2*i..3*i],&x[3*i..4*i]) as f64 ) / (i as f64) +
@@ -33,7 +33,7 @@ pub fn determine_keysizes(x: &[u8], n: usize) -> Vec<usize> {
     (0..n).map(|i| d[i].0).collect::<Vec<usize>>()
 }
 
-pub fn transpose(x: &[u8], n: usize) -> Vec<Vec<u8>> {
+fn transpose(x: &[u8], n: usize) -> Vec<Vec<u8>> {
     let mut y = Vec::new();
     for _ in 0..n { y.push(Vec::new()); }
     for i in 0..x.len() {
@@ -64,4 +64,29 @@ pub fn analyse_vigenere(ct: &[u8]) -> Vec<u8> {
         }
     }
     key
+}
+
+
+#[cfg(test)]
+mod test {
+    use c01::{encode_base64,decode_base64};
+    use c04::read_file;
+    use c06::*;
+
+    #[test]
+    fn test_c06() {
+        let x = "this is a test";
+        let y = "wokka wokka!!!";
+        assert_eq!(37, hamming_distance(&x.as_bytes(),&y.as_bytes()));
+        assert_eq!(x,String::from_utf8(decode_base64(&encode_base64(&x.as_bytes()))).unwrap()); // test base64 encoding and decoding
+        let path = "src/c06.txt";
+        let v = read_file(&path).concat();
+        let ct = decode_base64(&v); // decode ciphertext
+        let key = analyse_vigenere(&ct); // steps 3 to 8
+        assert_eq!(&key, &vec![0x74, 0x45, 0x52, 0x4D, 0x49, 0x4E,
+                               0x41, 0x54, 0x4F, 0x52, 0x00, 0x78,
+                               0x1A, 0x00, 0x62, 0x52, 0x49, 0x4E,
+                               0x47, 0x00, 0x54, 0x48, 0x45, 0x00,
+                               0x4E, 0x4F, 0x49, 0x53, 0x45]);
+    }
 }

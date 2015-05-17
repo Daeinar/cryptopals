@@ -1,5 +1,5 @@
-use  c01::{unhex};
-use  c02::{xor};
+use  c01::unhex;
+use  c02::xor;
 
 pub fn is_ecb_ciphertext(x: &[u8], b: usize) -> bool {
     for i in 0..x.len()/b {
@@ -12,7 +12,6 @@ pub fn is_ecb_ciphertext(x: &[u8], b: usize) -> bool {
     false
 }
 
-
 pub fn find_ecb(lines: Vec<String>, b: usize) -> i32 {
     for i in 0..lines.len() {
         let bytes = unhex(&lines[i]);
@@ -21,4 +20,18 @@ pub fn find_ecb(lines: Vec<String>, b: usize) -> i32 {
         }
     }
     -1
+}
+
+
+#[cfg(test)]
+mod test {
+    use c04::read_file;
+    use c08::find_ecb;
+
+    #[test]
+    fn test_c08() {
+        let path = "src/c08.txt";
+        let v = read_file(&path);
+        assert_eq!(132, find_ecb(v,16));
+    }
 }

@@ -46,3 +46,23 @@ pub fn is_ecb_oracle<Oracle>(x: &[u8], o: Oracle) -> bool
     where Oracle: Fn(&[u8]) -> Vec<u8> {
     is_ecb_ciphertext(&o(x),16)
 }
+
+
+#[cfg(test)]
+mod test {
+    use c01::decode_base64;
+    use c04::read_file;
+    use c07::aes128_ecb_decrypt;
+    use c11::{encryption_oracle,is_ecb_oracle};
+
+    #[test]
+    fn test_c11() {
+        let key = b"YELLOW SUBMARINE";
+        let path = "src/c07.txt";
+        let v = read_file(&path).concat();
+        let ct = decode_base64(&v); // decode ciphertext
+        let pt = aes128_ecb_decrypt(key, &ct);
+        let is_ecb = is_ecb_oracle(&pt,encryption_oracle);
+        assert_eq!(is_ecb, is_ecb); // lame test, some better way?
+    }
+}

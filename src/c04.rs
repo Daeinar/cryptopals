@@ -28,3 +28,17 @@ pub fn frequency_analyse_list(lines: &Vec<String>) -> String {
     s
 }
 
+
+#[cfg(test)]
+mod test {
+    use c04::{read_file,frequency_analyse_list};
+
+    #[test]
+    fn test_c04() {
+        let path = "src/c04.txt";
+        let v = read_file(&path);
+        let x = frequency_analyse_list(&v);
+        let y = "nOWTHATTHEPARTYISJUMPING*";
+        assert_eq!(x,y);
+    }
+}
