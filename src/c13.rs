@@ -13,10 +13,5 @@ pub fn parse(s: &str) -> HashMap<&str,&str> {
 }
 
 pub fn profile_for(s :&str) -> String {
-    let email = s.replace("=","").replace("&","");
-    let mut profile = String::new();
-    profile.push_str("email=");
-    profile.push_str(&email);
-    profile.push_str("&uid=10&role=user");
-    profile
+    vec!["email=",&s.replace("=","").replace("&",""),"&uid=10&role=user"].concat()
 }
