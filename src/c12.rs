@@ -4,7 +4,7 @@ use self::rand::{thread_rng, Rng};
 use c07::{aes128_ecb_encrypt,aes128_ecb_decrypt};
 use c09::pkcs7;
 
-pub struct ECBOracle { key: Vec<u8>, suffix: Vec<u8>, mode: usize } // msg is an "unknown" string and appended at each query before encryption
+pub struct ECBOracle { key: Vec<u8>, prefix: Vec<u8>, suffix: Vec<u8>, mode: usize } // msg is an "unknown" string and appended at each query before encryption
 
 pub fn random_bytes(n: usize) -> Vec<u8> {
     let mut rng = thread_rng();
@@ -15,21 +15,19 @@ pub fn random_bytes(n: usize) -> Vec<u8> {
 
 impl ECBOracle {
     pub fn new() -> ECBOracle {
-        ECBOracle { key: random_bytes(16), suffix: vec![], mode: 0 }
+        ECBOracle { key: random_bytes(16), prefix: random_bytes(random_bytes(1)[0] as usize), suffix: vec![], mode: 0 }
     }
     pub fn encrypt(&self, m: &[u8]) -> Vec<u8> {
         let n = match self.mode {
             0 => m.to_vec(), // only encrypt msg
             1 => vec![m.to_vec(), self.suffix.clone()].concat(), // encrypt msg+suffix
-            2 => vec![random_bytes(random_bytes(1)[0] as usize), m.to_vec(), self.suffix.clone()].concat(), // encrypt prefix+msg+suffix
+            2 => vec![self.prefix.clone(), m.to_vec(), self.suffix.clone()].concat(), // encrypt prefix+msg+suffix
             _ => panic!("unknwon mode"),
         };
         aes128_ecb_encrypt(&self.key,&pkcs7(&n,16))
     }
     pub fn decrypt(&self, c: &[u8]) -> Vec<u8> {
         aes128_ecb_decrypt(&self.key,&c)
-        //let lb = m.last().unwrap().clone() as usize;
-        //(0..m.len()-lb).map(|i| m[i]).collect::<Vec<u8>>() // it is not verified that padding is correct!
     }
     pub fn set_mode(&mut self, mode: usize) {
         assert!(mode <= 2);
@@ -37,6 +35,9 @@ impl ECBOracle {
     }
     pub fn set_suffix(&mut self, m: &[u8]) {
         self.suffix = m.to_vec();
+    }
+    pub fn set_key(&mut self, k: &[u8]) {
+        self.key = k.to_vec();
     }
     pub fn print_key(&self) {
         for i in 0..self.key.len() {
