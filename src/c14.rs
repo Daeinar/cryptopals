@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use c01::{decode_base64,hex};
+    use c01::decode_base64;
     use c12::*;
 
     #[test]
@@ -22,29 +22,11 @@ mod test {
             }
         }
         // compute number of random bytes
-        let nrb = x.len() - pt.len() - num_padding_bytes;
-
-        let bs = 16; // block size
-
-        let offset = bs - nrb%bs;
-
-        let mut rpt = Vec::new(); // recovered plaintext
-        for i in 0..pt.len() {
-            let mut block = vec![0x00 as u8; offset + (bs - i%bs - 1)]; // set input block including compensation for random byte offset
-            let c = oracle.encrypt(&block); // query ECB_Oracle(random_prefix || your_input || unknown_suffix)
-            block.extend(rpt.clone()); // prepare input block
-            block.push(0x00);
-            let bn = i/bs; // determin current block number
-            for j in 0..255 { // guess last byte
-                block[offset + (bs*bn + bs - 1)] = j as u8;
-                let d = oracle.encrypt(&block);
-                let o = (nrb + offset + i)/bs; // determine offset in ciphertext
-                if hex(&c[bs*o..bs*(o+1)]) == hex(&d[bs*o..bs*(o+1)]) {
-                    rpt.push(j as u8);
-                    break;
-                }
-            }
-        }
-        assert_eq!(pt,rpt);
+        let num_random_bytes = x.len() - pt.len() - num_padding_bytes;
+        // block size
+        let block_size = 16;
+        // offset to compensate random bytes
+        let offset = block_size - num_random_bytes % block_size;
+        assert_eq!(pt, attack_ecb(oracle, pt.len(), block_size, num_random_bytes, offset));
     }
 }

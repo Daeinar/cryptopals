@@ -26,14 +26,14 @@ mod test {
     #[should_panic(expected = "invalid padding")]
     fn test_c15b() {
         let s = "ICE ICE BABY\x05\x05\x05\x05";
-        let t = reverse_pkcs7(&s.as_bytes(),16);
+        reverse_pkcs7(&s.as_bytes(),16);
     }
 
     #[test]
     #[should_panic(expected = "invalid padding")]
     fn test_c15c() {
         let s = "ICE ICE BABY\x01\x02\x03\x04";
-        let t = reverse_pkcs7(&s.as_bytes(),16);
+        reverse_pkcs7(&s.as_bytes(),16);
     }
 
     #[test]

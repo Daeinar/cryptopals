@@ -1,4 +1,4 @@
-use c01::random_bytes;
+use c01::{hex,random_bytes};
 use c07::{aes128_ecb_encrypt,aes128_ecb_decrypt};
 use c09::pkcs7;
 
@@ -31,9 +31,32 @@ impl ECBOracle {
 }
 
 
+pub fn attack_ecb(oracle: ECBOracle, length: usize, block_size: usize, num_random_bytes: usize, offset: usize) -> Vec<u8> {
+
+    let mut recovered_pt = Vec::new(); // recovered plaintext
+    for i in 0..length {
+        let mut block = vec![0x00 as u8; offset + (block_size - i % block_size - 1)]; // set input block including compensation for random byte offset
+        let c = oracle.encrypt(&block); // query ECB_Oracle(random_prefix || your_input || unknown_suffix)
+        block.extend(recovered_pt.clone()); // prepare input block
+        block.push(0x00);
+        let block_number = i/block_size;
+        for j in 0..255 { // guess last byte
+            block[offset + (block_size*block_number + block_size - 1)] = j as u8;
+            let d = oracle.encrypt(&block);
+            let o = (num_random_bytes + offset + i)/block_size; // determine offset in ciphertext
+            if hex(&c[block_size*o..block_size*(o+1)]) == hex(&d[block_size*o..block_size*(o+1)]) {
+                recovered_pt.push(j as u8);
+                break;
+            }
+        }
+    }
+    recovered_pt
+}
+
+
 #[cfg(test)]
 mod test {
-    use c01::{decode_base64,hex};
+    use c01::decode_base64;
     use c12::*;
 
     #[test]
@@ -42,23 +65,6 @@ mod test {
         let mut oracle = ECBOracle::new(); // init ECB oracle
         oracle.set_suffix(&pt); // set "unknown" plaintext suffix
         oracle.set_mode(1); // set correct mode
-        let bs = 16; // block size
-        let mut rpt = Vec::new(); // recovered plaintext
-        for i in 0..pt.len() {
-            let mut block = vec![0x00 as u8; bs - i%bs - 1]; // set input block
-            let c = oracle.encrypt(&block); // query ECB_Oracle(your_string || unknown_string)
-            block.extend(rpt.clone()); // prepare input block
-            block.push(0x00);
-            let l = i/16; // determine current block number
-            for j in 0..255 { // guess last byte
-                block[16*l+15] = j as u8;
-                let d = oracle.encrypt(&block);
-                if hex(&c[16*l..16*(l+1)]) == hex(&d[16*l..16*(l+1)]) {
-                    rpt.push(j as u8);
-                    break;
-                }
-            }
-        }
-        assert_eq!(pt,rpt);
+        assert_eq!(pt, attack_ecb(oracle, pt.len(), 16, 0, 0));
     }
 }
