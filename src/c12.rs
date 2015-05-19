@@ -1,17 +1,8 @@
-extern crate rand;
-
-use self::rand::{thread_rng, Rng};
+use c01::random_bytes;
 use c07::{aes128_ecb_encrypt,aes128_ecb_decrypt};
 use c09::pkcs7;
 
 pub struct ECBOracle { key: Vec<u8>, prefix: Vec<u8>, suffix: Vec<u8>, mode: usize } // msg is an "unknown" string and appended at each query before encryption
-
-pub fn random_bytes(n: usize) -> Vec<u8> {
-    let mut rng = thread_rng();
-    let mut x = vec![0u8; n];
-    rng.fill_bytes(&mut x);
-    x
-}
 
 impl ECBOracle {
     pub fn new() -> ECBOracle {

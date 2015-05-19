@@ -1,3 +1,7 @@
+extern crate rand;
+
+use self::rand::{thread_rng, Rng};
+
 static CHARS: &'static[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 // encode byte vector as base64 string
@@ -69,13 +73,19 @@ pub fn ascii(x: &[u8]) -> Vec<u8> {
     x.iter().map(|y| y.clone()).filter(|&y| 31 < y && y < 127).collect::<Vec<u8>>()
 }
 
+pub fn random_bytes(n: usize) -> Vec<u8> {
+    let mut rng = thread_rng();
+    let mut x = vec![0u8; n];
+    rng.fill_bytes(&mut x);
+    x
+}
+
 pub fn print_bytes(x: &[u8]) {
     for i in 0..x.len() {
         print!("{:02X} ", x[i]);
     }
     println!("");
 }
-
 
 #[cfg(test)]
 mod test {

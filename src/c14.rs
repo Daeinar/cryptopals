@@ -13,11 +13,11 @@ mod test {
         // detect number of padding bytes
         let x = oracle.encrypt(&vec![]);
         let l = x.len();
-        let mut num_padding_bytes = 15;
-        for i in 1..16 {
+        let mut num_padding_bytes = 16;
+        for i in 0..16 {
             let y = oracle.encrypt(&vec![0x00 as u8; i]);
             if l != y.len() {
-                num_padding_bytes = i - 1;
+                num_padding_bytes = i;
                 break;
             }
         }
@@ -25,17 +25,20 @@ mod test {
         let nrb = x.len() - pt.len() - num_padding_bytes;
 
         let bs = 16; // block size
+
+        let offset = bs - nrb%bs;
+
         let mut rpt = Vec::new(); // recovered plaintext
         for i in 0..pt.len() {
-            let mut block = vec![0x00 as u8; (bs - nrb%bs) + (bs - i%bs - 1)]; // set input block including compensation for random byte offset
+            let mut block = vec![0x00 as u8; offset + (bs - i%bs - 1)]; // set input block including compensation for random byte offset
             let c = oracle.encrypt(&block); // query ECB_Oracle(random_prefix || your_input || unknown_suffix)
             block.extend(rpt.clone()); // prepare input block
             block.push(0x00);
             let bn = i/bs; // determin current block number
             for j in 0..255 { // guess last byte
-                block[(bs - nrb%bs) + (bs*bn + bs - 1)] = j as u8;
+                block[offset + (bs*bn + bs - 1)] = j as u8;
                 let d = oracle.encrypt(&block);
-                let o = (nrb + (bs - nrb%bs) + i)/bs; // determine offset in ciphertext
+                let o = (nrb + offset + i)/bs; // determine offset in ciphertext
                 if hex(&c[bs*o..bs*(o+1)]) == hex(&d[bs*o..bs*(o+1)]) {
                     rpt.push(j as u8);
                     break;
