@@ -24,6 +24,7 @@ impl ECBOracle {
             2 => vec![self.prefix.clone(), m.to_vec(), self.suffix.clone()].concat(), // encrypt prefix+msg+suffix
             _ => panic!("unknwon mode"),
         };
+        //println!("prefix-length: {}", self.prefix.len());
         aes128_ecb_encrypt(&self.key,&pkcs7(&n,16))
     }
     pub fn decrypt(&self, c: &[u8]) -> Vec<u8> {
@@ -35,15 +36,6 @@ impl ECBOracle {
     }
     pub fn set_suffix(&mut self, m: &[u8]) {
         self.suffix = m.to_vec();
-    }
-    pub fn set_key(&mut self, k: &[u8]) {
-        self.key = k.to_vec();
-    }
-    pub fn print_key(&self) {
-        for i in 0..self.key.len() {
-            print!("{:02X} ", self.key[i]);
-        }
-        println!("");
     }
 }
 
