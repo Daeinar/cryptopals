@@ -1,7 +1,7 @@
 use c01::random_bytes;
 use c09::pkcs7;
 use c10::*;
-use c15::reverse_pkcs7;
+use c15::remove_pkcs7;
 
 pub struct CBCOracle { key: Vec<u8>, prefix: Vec<u8>, suffix: Vec<u8> }
 
@@ -14,7 +14,7 @@ impl CBCOracle {
         aes128_cbc_encrypt(&self.key, &iv, &pkcs7(&n,16))
     }
     pub fn decrypt(&self, iv: &[u8], c: &[u8] ) -> Vec<u8> {
-        reverse_pkcs7(&aes128_cbc_decrypt(&self.key, &iv, &c),16)
+        remove_pkcs7(&aes128_cbc_decrypt(&self.key, &iv, &c),16)
     }
     pub fn set_prefix(&mut self, x: &[u8]) {
         self.prefix = x.to_vec();
