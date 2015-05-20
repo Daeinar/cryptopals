@@ -24,17 +24,33 @@ impl CBCOracle {
     }
 }
 
+pub fn find_substring(s: &str, t: &str) -> bool {
+    let x = s.to_string();
+    match x.find(t) {
+        None => false,
+        _ => true
+    }
+}
+
 #[cfg(test)]
 mod test {
     use c16::*;
 
     #[test]
-    fn test_c16() {
+    fn test_c16a() {
         let oracle = CBCOracle::new();
         let s = "OOOH MY GOD, IT'S FULL OF STARS!";
         let iv = vec![0x00; 16];
         let c = oracle.encrypt(&iv, &s.as_bytes());
         let p = oracle.decrypt(&iv, &c);
         assert_eq!(s,String::from_utf8(p).unwrap());
+    }
+
+    #[test]
+    fn test_c16b() {
+        let s = "comment1=cooking%20MCs;userdata=foo;comment2=%20like%20a%20pound%20of%20bacon";
+        assert_eq!(false,find_substring(s,";admin=true;"));
+        let t = "comment1=cooking%20MCs;userdata=foo;comment2=%20like%20a%20pound%20of%20bacon;admin=true;";
+        assert_eq!(true,find_substring(t,";admin=true;"));
     }
 }
