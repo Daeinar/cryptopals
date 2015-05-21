@@ -1,38 +1,7 @@
-use c01::random_bytes;
-use c09::pkcs7;
-use c10::*;
-use c15::remove_pkcs7;
-
-pub struct CBCOracle { key: Vec<u8> }
-
-impl CBCOracle {
-pub fn new() -> CBCOracle {
-    CBCOracle { key: random_bytes(16) }
-    }
-    pub fn encrypt(&self, iv: &[u8], m: &[u8]) -> Vec<u8> {
-        aes128_cbc_encrypt(&self.key, &iv, &pkcs7(&m,16))
-    }
-    pub fn decrypt(&self, iv: &[u8], c: &[u8] ) -> Vec<u8> {
-        remove_pkcs7(&aes128_cbc_decrypt(&self.key, &iv, &c),16)
-    }
-}
-
-pub fn create_message(prefix: &str, msg: &str, suffix: &str) -> String {
-    vec![prefix,msg,suffix].concat().replace(";","\";\"").replace("=","\"=\"")
-}
-
-pub fn contains_string(s: &str, t: &str) -> bool {
-    let x = s.to_string();
-    match x.find(t) {
-        None => false,
-        _ => true
-    }
-}
-
 #[cfg(test)]
 mod test {
-    use c01::ascii;
-    use c16::*;
+    use set01::{ascii};
+    use set02::{CBCOracle,create_message,contains_string};
 
     #[test]
     fn test_c16a() {

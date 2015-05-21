@@ -1,13 +1,6 @@
-pub fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {
-    assert!(x.len() == y.len());
-    (0..x.len()).map(|i| x[i] ^ y[i]).collect::<Vec<u8>>()
-}
-
-
 #[cfg(test)]
 mod test {
-    use c01::{hex,unhex};
-    use c02::xor;
+    use set01::{hex,unhex,xor};
 
     #[test]
     fn test_c02() {

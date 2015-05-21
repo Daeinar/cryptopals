@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
-    use c01::decode_base64;
-    use c12::*;
+    use set01::decode_base64;
+    use set02::{ECBOracle,attack_ecb};
 
     #[test]
     fn test_c14() {
