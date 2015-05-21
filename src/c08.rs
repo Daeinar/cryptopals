@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod test {
-    use set01::{read_file,find_ecb};
+    use set01::{find_ecb};
+    use utils::{read_file};
 
     #[test]
     fn test_c08() {

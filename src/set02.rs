@@ -2,7 +2,8 @@ extern crate rand;
 
 use std::collections::HashMap;
 use self::rand::{thread_rng, Rng};
-use set01::{hex,random_bytes,xor,aes128_ecb_encrypt,aes128_ecb_decrypt,is_ecb_ciphertext};
+use set01::{hex,xor,aes128_ecb_encrypt,aes128_ecb_decrypt,is_ecb_ciphertext};
+use utils::{random_bytes};
 
 pub fn pkcs7(x: &[u8], n: usize) -> Vec<u8> {
     vec![x.to_vec(),vec![((n-x.len()%n)) as u8; ((n-x.len()%n))]].concat()
@@ -65,11 +66,9 @@ pub fn encryption_oracle(x: &[u8]) -> Vec<u8> {
 
     match rand::random() {
         true => {
-            print!("ECB: ");
             aes128_ecb_encrypt(&k, &m)
             },
         false => {
-            print!("CBC: ");
             let mut iv = [0u8; 16];
             rng.fill_bytes(&mut iv);
             aes128_cbc_encrypt(&k, &iv, &m)
@@ -97,7 +96,6 @@ impl ECBOracle {
             2 => vec![self.prefix.clone(), m.to_vec(), self.suffix.clone()].concat(), // encrypt prefix+msg+suffix
             _ => panic!("unknwon mode"),
         };
-        //println!("prefix-length: {}", self.prefix.len());
         aes128_ecb_encrypt(&self.key,&pkcs7(&n,16))
     }
     pub fn decrypt(&self, c: &[u8]) -> Vec<u8> {

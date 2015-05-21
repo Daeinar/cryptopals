@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod test {
-    use set01::{decode_base64,read_file};
+    use set01::{decode_base64};
     use set02::{aes128_cbc_encrypt,aes128_cbc_decrypt};
+    use utils::{read_file};
 
     #[test]
     fn test_c10() {

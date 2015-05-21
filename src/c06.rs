@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod test {
-    use set01::{encode_base64,decode_base64,read_file,hamming_distance,analyse_vigenere};
+    use set01::{encode_base64,decode_base64,hamming_distance,analyse_vigenere};
+    use utils::{read_file};
 
     #[test]
     fn test_c06() {
