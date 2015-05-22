@@ -29,3 +29,7 @@ pub fn print_bytes(x: &[u8]) {
     }
     println!("");
 }
+
+pub fn store64(x: u64) -> Vec<u8> {
+    (0..8).map(|i| (x >> 8*i) as u8).collect::<Vec<u8>>()
+}

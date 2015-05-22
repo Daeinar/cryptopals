@@ -1,4 +1,6 @@
+use set01::{xor,aes128_ecb_encrypt};
 use set02::CBCOracle;
+use utils::{store64};
 
 fn recover_cbc_byte(oracle: &CBCOracle, block: &[u8], iv: &[u8], c: &[u8], i: usize, o: usize, t: bool) -> Vec<Vec<u8>> {
     let mut blocks = vec![];
@@ -46,8 +48,22 @@ pub fn recover_cbc_plaintext(oracle: &CBCOracle, iv: &[u8], c: &[u8]) -> Vec<u8>
                 }
             }
         }
-        // there was not a single case where more than one block were left at this point
+        // there was not a single case where more than one block was left at this point
         p.insert(0,blocks[0].to_vec());
     }
     p.concat()
 }
+
+
+pub fn aes128_ctr(n: &[u8], k: &[u8], m: &[u8]) -> Vec<u8> {
+    let mut i = 0;
+    let nonce = n.to_vec();
+    let mut c = vec![];
+    for x in m.chunks(16) {
+        let y = vec![nonce.clone(),store64(i as u64)].concat();
+        c.extend(xor(x,&aes128_ecb_encrypt(k,&y)[0..x.len()]));
+        i += 1;
+    }
+    c
+}
+
