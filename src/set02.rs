@@ -5,19 +5,19 @@ use self::rand::{thread_rng, Rng};
 use set01::{hex,xor,aes128_ecb_encrypt,aes128_ecb_decrypt,is_ecb_ciphertext};
 use utils::{random_bytes};
 
-pub fn pkcs7(x: &[u8], n: usize) -> Vec<u8> {
+pub fn pkcs7_pad(x: &[u8], n: usize) -> Vec<u8> {
     vec![x.to_vec(),vec![((n-x.len()%n)) as u8; ((n-x.len()%n))]].concat()
 }
 
-pub fn remove_pkcs7(x: &[u8], n: usize) -> Vec<u8> {
+pub fn pkcs7_unpad(x: &[u8], n: usize) -> Option<Vec<u8>> {
     assert!(x.len()%n == 0);
     let l = x[x.len()-1] as usize;
     for i in 0..l {
         if l != x[x.len()-1-i] as usize {
-            panic!("invalid padding");
+           return None;
         }
     }
-    x[0..(x.len()-l as usize)].to_vec()
+    Some(x[0..(x.len()-l as usize)].to_vec())
 }
 
 pub fn aes128_cbc_encrypt(k: &[u8], iv: &[u8], m: &[u8]) -> Vec<u8> {
@@ -62,7 +62,7 @@ pub fn encryption_oracle(x: &[u8]) -> Vec<u8> {
     m.extend(n);
 
     // pad message to AES block size
-    m = pkcs7(&m,16);
+    m = pkcs7_pad(&m,16);
 
     match rand::random() {
         true => {
@@ -96,7 +96,7 @@ impl ECBOracle {
             2 => vec![self.prefix.clone(), m.to_vec(), self.suffix.clone()].concat(), // encrypt prefix+msg+suffix
             _ => panic!("unknwon mode"),
         };
-        aes128_ecb_encrypt(&self.key,&pkcs7(&n,16))
+        aes128_ecb_encrypt(&self.key,&pkcs7_pad(&n,16))
     }
     pub fn decrypt(&self, c: &[u8]) -> Vec<u8> {
         aes128_ecb_decrypt(&self.key,&c)
@@ -153,10 +153,10 @@ pub fn new() -> CBCOracle {
     CBCOracle { key: random_bytes(16) }
     }
     pub fn encrypt(&self, iv: &[u8], m: &[u8]) -> Vec<u8> {
-        aes128_cbc_encrypt(&self.key, &iv, &pkcs7(&m,16))
+        aes128_cbc_encrypt(&self.key, &iv, &pkcs7_pad(&m,16))
     }
-    pub fn decrypt(&self, iv: &[u8], c: &[u8] ) -> Vec<u8> {
-        remove_pkcs7(&aes128_cbc_decrypt(&self.key, &iv, &c),16)
+    pub fn decrypt(&self, iv: &[u8], c: &[u8] ) -> Option<Vec<u8>> {
+        pkcs7_unpad(&aes128_cbc_decrypt(&self.key, &iv, &c),16)
     }
 }
 

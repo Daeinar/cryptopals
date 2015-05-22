@@ -18,6 +18,11 @@ pub fn random_bytes(n: usize) -> Vec<u8> {
     x
 }
 
+pub fn random_u32() -> u32 {
+    let mut rng = thread_rng();
+    rng.gen::<u32>()
+}
+
 pub fn print_bytes(x: &[u8]) {
     for i in 0..x.len() {
         print!("{:02X} ", x[i]);

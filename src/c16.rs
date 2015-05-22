@@ -9,7 +9,7 @@ mod test {
         let s = "OOOH MY GOD, IT'S FULL OF STARS!";
         let iv = vec![0x00; 16];
         let c = oracle.encrypt(&iv, &s.as_bytes());
-        let p = oracle.decrypt(&iv, &c);
+        let p = oracle.decrypt(&iv, &c).unwrap();
         assert_eq!(s,String::from_utf8(p).unwrap());
     }
 
@@ -54,7 +54,7 @@ mod test {
         c[41] ^= 0x01;
         c[42] ^= 0x17;
         c[43] ^= 0x4E;
-        let p = oracle.decrypt(&iv, &c);
+        let p = oracle.decrypt(&iv, &c).unwrap();
         assert_eq!(true,contains_string(&String::from_utf8(ascii(&p)).unwrap(),";admin=true;"));
     }
 }
