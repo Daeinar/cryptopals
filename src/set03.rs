@@ -2,25 +2,21 @@ use set02::CBCOracle;
 
 fn recover_cbc_byte(oracle: &CBCOracle, block: &[u8], iv: &[u8], c: &[u8], i: usize, o: usize, t: bool) -> Vec<Vec<u8>> {
     let mut blocks = vec![];
+    let mut x = iv.to_vec();
+    let mut y = match t { true => c[0..o].to_vec(), false => c[0..16].to_vec(), };
     for j in 0..256 {
-        let mut x;
-        let mut y;
         if t {
             // modify ciphertext
-            x = iv.to_vec();
-            y = c[0..o].to_vec();
             for k in 0..i {
-                y[o - 16 - (k + 1)] = y[o - 16 - (k + 1)] ^ block[16 - (k + 1)] ^ ((i + 1) as u8);
+                y[o - 16 - (k + 1)] = c[o - 16 - (k + 1)] ^ block[16 - (k + 1)] ^ ((i + 1) as u8);
             }
-            y[o - 16 - (i + 1)] = y[o - 16 - (i + 1)] ^ (j as u8) ^ ((i + 1) as u8);
+            y[o - 16 - (i + 1)] = c[o - 16 - (i + 1)] ^ (j as u8) ^ ((i + 1) as u8);
         } else {
             // modify IV
-            x = iv.to_vec();
-            y = c[0..16].to_vec();
             for k in 0..i {
-                x[o - 16 - (k + 1)] = x[o - 16 - (k + 1)] ^ block[16 - (k + 1)] ^ ((i + 1) as u8);
+                x[o - 16 - (k + 1)] = iv[o - 16 - (k + 1)] ^ block[16 - (k + 1)] ^ ((i + 1) as u8);
             }
-            x[o - 16 - (i + 1)] = x[o - 16 - (i + 1)] ^ (j as u8) ^ ((i + 1) as u8);
+            x[o - 16 - (i + 1)] = iv[o - 16 - (i + 1)] ^ (j as u8) ^ ((i + 1) as u8);
         }
         if None != oracle.decrypt(&x, &y) {
             let mut b = block.to_vec();
