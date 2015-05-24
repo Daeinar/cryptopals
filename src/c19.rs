@@ -1,8 +1,8 @@
 
 #[cfg(test)]
 mod test {
-    use set01::{decode_base64,xor};
-    use set03::{CTROracle,filter_elements};
+    use set01::{decode_base64};
+    use set03::{CTROracle,attack_ctr};
 
     #[test]
     fn test_c19() {
@@ -52,59 +52,18 @@ mod test {
         let nonce = [0x00; 8];
         let c = (0..s.len()).map(|i| oracle.encrypt(&nonce,&decode_base64(s[i]))).collect::<Vec<Vec<u8>>>();
 
-        // find minimal length: we only recover the first min_l bytes
-        let mut lengths = (0..c.len()).map(|i| c[i].len()).collect::<Vec<usize>>();
-        lengths.sort_by(|a,b| a.cmp(&b));
-        let min_l = lengths[0];
+        let mut filter_a = vec![b' ', b',', b'\'', b'-', b':'];
+        filter_a.extend(b'A'..(b'Z'+1));
+        filter_a.extend(b'a'..(b'z'+1));
 
-        // recovered plaintext: filled with _ to see missing letters
-        let mut rp: Vec<Vec<u8>> = vec![ vec![0x5F; min_l]; 40 ];
+        let mut filter_b = vec![b' '];
+        filter_b.extend(b'A'..(b'Z'+1));
 
-        // specify filter
-        let mut f0 = vec![];
-          f0.push(b' ');
-          f0.push(b',');
-          f0.push(b'\'');
-          f0.push(b'-');
-          f0.push(b':');
-          f0.extend(b'A'..b'Z');
-          f0.extend(b'a'..b'z');
+        let p = attack_ctr(&c, &filter_a, &filter_b);
 
-        // iterate over ciphertexts column-wise
-        for i in 0..min_l {
-            let mut candidates = vec![];
-            for b in 0..256 { // guess bytes
-                let d = (0..c.len()).map(|j| c[j][i]).collect::<Vec<u8>>();
-                let v = filter_elements(&xor(&d,&vec![b as u8; 40]),&f0); // filter ascii elements
-                if 40 == v.len() {
-                    candidates.push(v.clone());
-                }
-            }
-            //evaluate candidates (kinda ugly!)
-            let x = match candidates.len() {
-                0 => panic!("no candidates found"),
-                1 => candidates.pop().unwrap(),
-                _ => {
-                    // specify filter
-                    let mut f1 = vec![b' '];
-                    f1.extend(b'A'..b'Z');
-                    let mut y = candidates[0].clone();
-                    for j in 0..candidates.len() {
-                        let v = filter_elements(&candidates[j], &f1); // filter ascii elements
-                        if 0 < v.len() {
-                            y = candidates[j].clone();
-                        }
-                    }
-                    y
-                }
-            };
-            for k in 0..x.len() {
-                rp[k][i] = x[k];
-            }
-        }
-        // Only check some strings of the recovered plaintext. Recovering all of it would be quite tedious
-        assert_eq!("A terrible beauty is",String::from_utf8(rp[15].clone()).unwrap());
-        assert_eq!("This other man I had",String::from_utf8(rp[30].clone()).unwrap());
-        assert_eq!("Transformed utterly:",String::from_utf8(rp[38].clone()).unwrap());
+        // Only check some strings of the recovered plaintext.
+        assert_eq!("A terrible beauty is",String::from_utf8(p[15].clone()).unwrap());
+        assert_eq!("This other man I had",String::from_utf8(p[30].clone()).unwrap());
+        assert_eq!("Transformed utterly:",String::from_utf8(p[38].clone()).unwrap());
     }
 }

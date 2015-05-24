@@ -78,6 +78,41 @@ impl CTROracle {
 }
 
 // returns elements of x contained in f
-pub fn filter_elements(x: &[u8], f: &[u8]) -> Vec<u8> {
+fn filter_elements(x: &[u8], f: &[u8]) -> Vec<u8> {
     x.iter().map(|y| y.clone()).filter(|&y| f.contains(&y)).collect::<Vec<u8>>()
+}
+
+pub fn attack_ctr(c: &Vec<Vec<u8>>, filter_a: &[u8], filter_b: &[u8]) -> Vec<Vec<u8>> {
+
+    let min_l = c.iter().map(|x| x.len()).min().unwrap(); // find minimum of ciphertext lengths
+
+    // recovered plaintext
+    let mut p: Vec<Vec<u8>> = vec![ vec![0x5F; min_l]; c.len() ]; // 0x5F == b'_' used to easily spot missing columns
+
+    for i in 0..min_l {
+        let mut candidates = vec![];
+
+        // guess stream bytes and apply filter_a
+        for byte in 0..256 {
+            let column = (0..c.len()).map(|j| c[j][i]).collect::<Vec<u8>>(); // get column
+            let guess = xor(&column,&vec![byte as u8; c.len()]);
+            if c.len() == filter_elements(&guess,&filter_a).len() {
+                candidates.push(guess);
+            }
+        }
+        let x = match candidates.len() {
+            0 => panic!("no candidates found"),
+            1 => candidates.pop().unwrap(),
+            _ => {
+                  // find candidate that contains the most elements with respect to filter_b
+                  let t = (0..candidates.len()).map(|j| (filter_elements(&candidates[j],&filter_b).len(),j)).max().unwrap();
+                  candidates[t.1].clone()
+            }
+        };
+        // copy elements from the most promising candidate x to the correct position in the plaintext
+        for k in 0..x.len() {
+            p[k][i] = x[k];
+        }
+    }
+    p
 }
