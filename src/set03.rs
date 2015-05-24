@@ -1,6 +1,6 @@
 use set01::{xor,aes128_ecb_encrypt};
 use set02::CBCOracle;
-use utils::{store64};
+use utils::{random_bytes,store64};
 
 fn recover_cbc_byte(oracle: &CBCOracle, block: &[u8], iv: &[u8], c: &[u8], i: usize, o: usize, t: bool) -> Vec<Vec<u8>> {
     let mut blocks = vec![];
@@ -54,7 +54,6 @@ pub fn recover_cbc_plaintext(oracle: &CBCOracle, iv: &[u8], c: &[u8]) -> Vec<u8>
     p.concat()
 }
 
-
 pub fn aes128_ctr(n: &[u8], k: &[u8], m: &[u8]) -> Vec<u8> {
     let mut i = 0;
     let nonce = n.to_vec();
@@ -67,3 +66,18 @@ pub fn aes128_ctr(n: &[u8], k: &[u8], m: &[u8]) -> Vec<u8> {
     c
 }
 
+pub struct CTROracle{ key: Vec<u8> }
+
+impl CTROracle {
+    pub fn new() -> CTROracle {
+        CTROracle { key: random_bytes(16) }
+    }
+    pub fn encrypt(&self, n: &[u8], m: &[u8]) -> Vec<u8> {
+        aes128_ctr(&n, &self.key, &m)
+    }
+}
+
+// returns elements of x contained in f
+pub fn filter_elements(x: &[u8], f: &[u8]) -> Vec<u8> {
+    x.iter().map(|y| y.clone()).filter(|&y| f.contains(&y)).collect::<Vec<u8>>()
+}
