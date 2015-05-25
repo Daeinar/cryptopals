@@ -7,7 +7,7 @@ mod test {
     #[test]
     fn test_c20() {
 
-        let path = "c20.txt";
+        let path = "src/c20.txt";
         let lines = read_file(&path);
         let oracle = CTROracle::new();
         let nonce = [0x00; 8];
