@@ -6,7 +6,7 @@ mod test {
     fn test_c21() {
 
         // Test vectors taken from http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/CODES/mt19937ar.c
-        // where MT19937 was seeded with the integer 0.
+        // using the integer 0 as seed for MT19937.
         let v: [u32; 1000] = [
             0x8C7F0AAC, 0x97C4AA2F, 0xB716A675, 0xD821CCC0, 0x9A4EB343, 0xDBA252FB, 0x8B7D76C3, 0xD8E57D67, 0x6C74A409, 0x9FA1DED3,
             0xA5595115, 0x6266D6F2, 0x7005B724, 0x4C2B3A57, 0xE44B3C46, 0x0E84BDD8, 0xF6B29A58, 0x45CCCD8C, 0x6229393A, 0x7A4842C1,
@@ -110,7 +110,7 @@ mod test {
             0x458B0932, 0x45E3E958, 0x7497FCD2, 0xF856D714, 0x66D6B2DE, 0x0686FE9C, 0x3F980648, 0xE356D512, 0x81807599, 0xB5676398 ];
 
             let mut mt = MT19937::new();
-            mt.init(0);
+            mt.seed(0);
             for i in 0..1000 {
                 assert_eq!(v[i],mt.generate_random_u32());
             }

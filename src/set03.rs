@@ -124,14 +124,14 @@ impl MT19937 {
     pub fn new() -> MT19937 {
         MT19937 { mt: [0; 624], index: 0 }
     }
-    pub fn init(&mut self, seed: u32) {
+    pub fn seed(&mut self, seed: u32) {
         self.index = 0;
         self.mt[0] = seed;
         for i in 1..624 {
             self.mt[i] = add32(mult32(0x6C078965, self.mt[i-1] ^ (self.mt[i-1] >> 30)), i as u32);
         }
     }
-    pub fn generate_numbers(&mut self) {
+    fn generate_numbers(&mut self) {
         for i in 0..624 {
             let y = add32(self.mt[i] & 0x80000000, self.mt[ (i+1) % 624 ] & 0x7FFFFFFF);
             self.mt[i] = self.mt[(i + 397) % 624] ^ (y >> 1);
