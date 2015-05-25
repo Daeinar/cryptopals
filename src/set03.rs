@@ -1,6 +1,7 @@
 use set01::{xor,aes128_ecb_encrypt};
 use set02::CBCOracle;
-use utils::{random_bytes,store64};
+use utils::{random_bytes,store64,add32,mult32};
+
 
 fn recover_cbc_byte(oracle: &CBCOracle, block: &[u8], iv: &[u8], c: &[u8], i: usize, o: usize, t: bool) -> Vec<Vec<u8>> {
     let mut blocks = vec![];
@@ -115,4 +116,40 @@ pub fn attack_ctr(c: &Vec<Vec<u8>>, filter_a: &[u8], filter_b: &[u8]) -> Vec<Vec
         }
     }
     p
+}
+
+pub struct MT19937{ mt: [u32; 624], index: usize }
+
+impl MT19937 {
+    pub fn new() -> MT19937 {
+        MT19937 { mt: [0; 624], index: 0 }
+    }
+    pub fn init(&mut self, seed: u32) {
+        self.index = 0;
+        self.mt[0] = seed;
+        for i in 1..624 {
+            self.mt[i] = add32(mult32(0x6C078965, self.mt[i-1] ^ (self.mt[i-1] >> 30)), i as u32);
+        }
+    }
+    pub fn generate_numbers(&mut self) {
+        for i in 0..624 {
+            let y = add32(self.mt[i] & 0x80000000, self.mt[ (i+1) % 624 ] & 0x7FFFFFFF);
+            self.mt[i] = self.mt[(i + 397) % 624] ^ (y >> 1);
+            if y % 2 != 0 {
+                self.mt[i]  = self.mt[i] ^ 0x9908B0DF
+            }
+        }
+    }
+    pub fn generate_random_u32(&mut self) -> u32 {
+        if self.index == 0 {
+            self.generate_numbers();
+        }
+        let mut y = self.mt[self.index];
+        y = y ^ (y >> 11);
+        y = y ^ ((y << 7) & 0x9D2C5680);
+        y = y ^ ((y << 15) & 0xEFC60000);
+        y = y ^ (y >> 18);
+        self.index = (self.index + 1) % 624;
+        y
+    }
 }

@@ -3,6 +3,7 @@ extern crate rand;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::num::Wrapping;
 use self::rand::{thread_rng, Rng};
 
 pub fn read_file(path: &str) -> Vec<String> {
@@ -32,4 +33,11 @@ pub fn print_bytes(x: &[u8]) {
 
 pub fn store64(x: u64) -> Vec<u8> {
     (0..8).map(|i| (x >> 8*i) as u8).collect::<Vec<u8>>()
+}
+
+pub fn mult32(x: u32, y: u32) -> u32 {
+    (Wrapping(x) * Wrapping(y)).0
+}
+pub fn add32(x: u32, y: u32) -> u32 {
+    (Wrapping(x) + Wrapping(y)).0
 }
