@@ -144,12 +144,27 @@ impl MT19937 {
         if self.index == 0 {
             self.generate_numbers();
         }
-        let mut y = self.mt[self.index];
-        y = y ^ (y >> 11);
-        y = y ^ ((y << 7) & 0x9D2C5680);
-        y = y ^ ((y << 15) & 0xEFC60000);
-        y = y ^ (y >> 18);
+        let y = self.temper(self.mt[self.index]);
         self.index = (self.index + 1) % 624;
         y
     }
+    pub fn temper(&self, x: u32) -> u32 {
+        let mut y = x ^ (x >> 11);
+        y = y ^ ((y << 7) & 0x9D2C5680);
+        y = y ^ ((y << 15) & 0xEFC60000);
+        y ^ (y >> 18)
+    }
+    pub fn set_state(&mut self, x: &[u32]) {
+        assert!(x.len() == 624);
+        for i in 0..624 {
+            self.mt[i] = x[i];
+        }
+    }
+}
+
+pub fn untemper(x: u32) -> u32 {
+    let mut y = x ^ (x >> 18);
+    y = y ^ ((y << 15) & 0xEFC60000);
+    y = y ^ ((y << 7) & 0x9D2C5680) ^ ((y << 14) & 0x94284000) ^ ((y << 21) & 0x14200000) ^ ((y << 28) & 0x10000000);
+    y ^ (y >> 11) ^ (y >> 22)
 }
