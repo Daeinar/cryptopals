@@ -148,6 +148,19 @@ impl MT19937 {
         self.index = (self.index + 1) % 624;
         y
     }
+    pub fn generate_random_bytes(&mut self, n: usize) -> Vec<u8> {
+        let mut s = vec![];
+        for _ in 0..(n/4+1) {
+            if self.index == 0 {
+                self.generate_numbers();
+            }
+            let x = self.temper(self.mt[self.index]);
+            s.extend(vec![ (x >> 0) as u8, (x >> 8) as u8, (x >> 16) as u8, (x >> 24) as u8 ]);
+            self.index = (self.index + 1) % 624;
+        }
+        s.truncate(n);
+        s
+    }
     pub fn temper(&self, x: u32) -> u32 {
         let mut y = x ^ (x >> 11);
         y = y ^ ((y << 7) & 0x9D2C5680);
@@ -183,14 +196,9 @@ impl MT19937Oracle {
         self.rng.seed( ((k[1] as u32) << 8) | (k[0] as u32) );
     }
     pub fn encrypt(&mut self, m: &[u8]) -> Vec<u8> {
-        let mut c = vec![];
         let n = vec![self.prefix.clone(),m.to_vec()].concat();
-        for x in n.chunks(4) {
-            let s = self.rng.generate_random_u32();
-            let r = [ (s >> 0) as u8, (s >> 8) as u8, (s >> 16) as u8, (s >> 24) as u8];
-            c.extend(xor(x,&r[0..x.len()]));
-        }
-        c
+        let s = self.rng.generate_random_bytes(n.len());
+        xor(&n,&s)
     }
 }
 
