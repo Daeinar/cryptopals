@@ -168,3 +168,29 @@ pub fn untemper(x: u32) -> u32 {
     y = y ^ ((y << 7) & 0x9D2C5680) ^ ((y << 14) & 0x94284000) ^ ((y << 21) & 0x14200000) ^ ((y << 28) & 0x10000000);
     y ^ (y >> 11) ^ (y >> 22)
 }
+
+
+pub struct MT19937Oracle { key: [u8; 2], prefix: Vec<u8>, rng: MT19937 }
+
+impl MT19937Oracle {
+    pub fn new() -> MT19937Oracle {
+           MT19937Oracle { key: [0x00,0x00], prefix: random_bytes(random_bytes(1)[0] as usize), rng: MT19937::new() }
+    }
+    pub fn init(&mut self) {
+        let k = random_bytes(2);
+        self.key[0] = k[0];
+        self.key[1] = k[1];
+        self.rng.seed( ((k[1] as u32) << 8) | (k[0] as u32) );
+    }
+    pub fn encrypt(&mut self, m: &[u8]) -> Vec<u8> {
+        let mut c = vec![];
+        let n = vec![self.prefix.clone(),m.to_vec()].concat();
+        for x in n.chunks(4) {
+            let s = self.rng.generate_random_u32();
+            let r = [ (s >> 0) as u8, (s >> 8) as u8, (s >> 16) as u8, (s >> 24) as u8];
+            c.extend(xor(x,&r[0..x.len()]));
+        }
+        c
+    }
+}
+
