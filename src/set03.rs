@@ -1,3 +1,5 @@
+extern crate time;
+
 use set01::{xor,aes128_ecb_encrypt};
 use set02::CBCOracle;
 use utils::{random_bytes,store64,add32,mult32};
@@ -148,18 +150,28 @@ impl MT19937 {
         self.index = (self.index + 1) % 624;
         y
     }
-    pub fn generate_random_bytes(&mut self, n: usize) -> Vec<u8> {
-        let mut s = vec![];
-        for _ in 0..(n/4+1) {
+    pub fn fill_bytes(&mut self, x: &mut [u8]) {
+        let l = x.len()/4;
+        let r = x.len()%4;
+        for i in 0..l {
             if self.index == 0 {
                 self.generate_numbers();
             }
-            let x = self.temper(self.mt[self.index]);
-            s.extend(vec![ (x >> 0) as u8, (x >> 8) as u8, (x >> 16) as u8, (x >> 24) as u8 ]);
+            let y = self.temper(self.mt[self.index]);
             self.index = (self.index + 1) % 624;
+            x[4*i + 0] = (y >>  0) as u8;
+            x[4*i + 1] = (y >>  8) as u8;
+            x[4*i + 2] = (y >> 16) as u8;
+            x[4*i + 3] = (y >> 24) as u8;
         }
-        s.truncate(n);
-        s
+        if 0 < r {
+            let y = self.temper(self.mt[self.index]);
+            self.index = (self.index + 1) % 624;
+            for i in 0..r {
+                x[4*l + i] =  (y >> (8*i)) as u8;
+            }
+        }
+
     }
     pub fn temper(&self, x: u32) -> u32 {
         let mut y = x ^ (x >> 11);
@@ -183,22 +195,38 @@ pub fn untemper(x: u32) -> u32 {
 }
 
 
-pub struct MT19937Oracle { key: [u8; 2], prefix: Vec<u8>, rng: MT19937 }
+pub struct MT19937Oracle { key: u16, prefix: Vec<u8>, rng: MT19937 }
 
 impl MT19937Oracle {
     pub fn new() -> MT19937Oracle {
-           MT19937Oracle { key: [0x00,0x00], prefix: random_bytes(random_bytes(1)[0] as usize), rng: MT19937::new() }
+           MT19937Oracle { key: 0, prefix: random_bytes(random_bytes(1)[0] as usize), rng: MT19937::new() }
     }
     pub fn init(&mut self) {
         let k = random_bytes(2);
-        self.key[0] = k[0];
-        self.key[1] = k[1];
-        self.rng.seed( ((k[1] as u32) << 8) | (k[0] as u32) );
+        self.key = (k[1] as u16) << 8 | (k[0] as u16);
+        self.rng.seed( self.key as u32 );
+    }
+    pub fn verify_key(&self, k: u16) -> bool {
+        self.key == k
     }
     pub fn encrypt(&mut self, m: &[u8]) -> Vec<u8> {
         let n = vec![self.prefix.clone(),m.to_vec()].concat();
-        let s = self.rng.generate_random_bytes(n.len());
+        let mut s = vec![0x00; n.len()];
+        self.rng.fill_bytes(&mut s);
         xor(&n,&s)
     }
 }
 
+pub fn is_ticket(x: &[u8; 16]) -> bool {
+    let mut mt = MT19937::new();
+    let t = time::get_time().sec as u32;
+    let mut y = [0x00; 16];
+    for i in (t-10)..(t+10) {
+        mt.seed(i);
+        mt.fill_bytes(&mut y);
+        if x == &y {
+            return true;
+        }
+    }
+    false
+}
