@@ -78,6 +78,13 @@ impl CTROracle {
     pub fn encrypt(&self, n: &[u8], m: &[u8]) -> Vec<u8> {
         aes128_ctr(&n, &self.key, &m)
     }
+    pub fn edit(&self, c: &[u8], n: &[u8], m: &[u8], off: usize) -> Vec<u8> {
+        let mut p = self.encrypt(n, c);
+        for i in 0..m.len() {
+            p[i + off] = m[i];
+        }
+        self.encrypt(n, &p)
+    }
 }
 
 // returns elements of x contained in f
