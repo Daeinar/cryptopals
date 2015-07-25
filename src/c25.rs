@@ -16,7 +16,7 @@ mod test {
         let pt = aes128_ecb_decrypt(key, &ct);
 
         let oracle = CTROracle::new();
-        let nonce = [0x00;  8];
+        let nonce = [0x00; 8];
 
         let l = 81; // #recovered bytes
 
