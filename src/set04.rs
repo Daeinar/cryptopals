@@ -1,6 +1,8 @@
+extern crate openssl;
 
 use set02::{pkcs7_pad,pkcs7_unpad,aes128_cbc_encrypt,aes128_cbc_decrypt};
 use utils::{random_bytes};
+use self::openssl::crypto::hash::{hash, Type};
 
 pub struct CBCOracleKeyIV { key: Vec<u8> }
 
@@ -23,4 +25,10 @@ pub fn is_ascii(x: &[u8]) -> bool {
         }
     }
     true
+}
+
+pub fn sha1_mac(k: &[u8], m: &[u8]) -> Vec<u8> {
+    let mut data = k.to_vec();
+    data.extend(m.to_vec());
+    hash(Type::SHA1, &data)
 }
