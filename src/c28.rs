@@ -1,23 +1,24 @@
 #[cfg(test)]
 mod test {
 
+    extern crate openssl;
     use set01::{hex};
-    use set04::{sha1_mac};
+    use set04::{SHA1};
+    use self::openssl::crypto::hash::{hash, Type};
 
     #[test]
     fn test_c28() {
 
-        let key = b"abc";
-        let msg = b"";
-        assert_eq!(hex(&sha1_mac(key,msg)),"a9993e364706816aba3e25717850c26c9cd0d89d");
-
-        let key = b"";
-        let msg = b"";
-        assert_eq!(hex(&sha1_mac(key,msg)),"da39a3ee5e6b4b0d3255bfef95601890afd80709");
-
-        let key = b"";
-        let msg = b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-        assert_eq!(hex(&sha1_mac(key,msg)),"84983e441c3bd26ebaae4aa1f95129e5e54670f1");
+        let mut sha1 = SHA1::new();
+        let mut out = [0x00 as u8; 20];
+        let mut msg = [0x00 as u8; 512];
+        for i in 0..512 {
+            msg[i] = (i & 0xFF) as u8;
+            sha1.reset();
+            sha1.update(&msg);
+            sha1.output(&mut out);
+            assert_eq!(hex(&out),hex(&hash(Type::SHA1,&msg)));
+        }
 
     }
 }

@@ -27,12 +27,36 @@ pub fn random_u32() -> u32 {
 pub fn print_bytes(x: &[u8]) {
     for i in 0..x.len() {
         print!("{:02X} ", x[i]);
+        if i % 16 == 15 {
+            println!("");
+        }
     }
     println!("");
 }
 
 pub fn store64(x: u64) -> Vec<u8> {
     (0..8).map(|i| (x >> 8*i) as u8).collect::<Vec<u8>>()
+}
+
+// little endian
+pub fn store32(x: u32) -> Vec<u8> {
+    (0..4).map(|i| (x >> 8*i) as u8).collect::<Vec<u8>>()
+}
+
+// big endian
+pub fn load_be_u32(x: &[u8]) -> u32 {
+    return ((x[0] as u32) << 24) |
+           ((x[1] as u32) << 16) |
+           ((x[2] as u32) <<  8) |
+           ((x[3] as u32) <<  0);
+}
+
+// big endian
+pub fn store_be_u32(out: &mut[u8], input: u32) {
+        out[0] = (input >> 24) as u8;
+        out[1] = (input >> 16) as u8;
+        out[2] = (input >>  8) as u8;
+        out[3] = (input >>  0) as u8;
 }
 
 pub fn mult32(x: u32, y: u32) -> u32 {
