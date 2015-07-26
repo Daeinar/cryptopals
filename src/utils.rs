@@ -39,8 +39,18 @@ pub fn store64(x: u64) -> Vec<u8> {
 }
 
 // little endian
-pub fn store32(x: u32) -> Vec<u8> {
-    (0..4).map(|i| (x >> 8*i) as u8).collect::<Vec<u8>>()
+pub fn load_be_u32(x: &[u8]) -> u32 {
+    return ((x[0] as u32) <<  0) |
+           ((x[1] as u32) <<  8) |
+           ((x[2] as u32) << 16) |
+           ((x[3] as u32) << 24);
+}
+
+pub fn store_le_u32(out: &mut[u8], x: u32) {
+        out[0] = (x >>  0) as u8;
+        out[1] = (x >>  8) as u8;
+        out[2] = (x >> 16) as u8;
+        out[3] = (x >> 24) as u8;
 }
 
 // big endian
@@ -51,12 +61,11 @@ pub fn load_be_u32(x: &[u8]) -> u32 {
            ((x[3] as u32) <<  0);
 }
 
-// big endian
-pub fn store_be_u32(out: &mut[u8], input: u32) {
-        out[0] = (input >> 24) as u8;
-        out[1] = (input >> 16) as u8;
-        out[2] = (input >>  8) as u8;
-        out[3] = (input >>  0) as u8;
+pub fn store_be_u32(out: &mut[u8], x: u32) {
+        out[0] = (x >> 24) as u8;
+        out[1] = (x >> 16) as u8;
+        out[2] = (x >>  8) as u8;
+        out[3] = (x >>  0) as u8;
 }
 
 pub fn mult32(x: u32, y: u32) -> u32 {
