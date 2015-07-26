@@ -63,12 +63,13 @@ impl SHA1 {
         store_be_u32(&mut m[ml-4..ml-0],((lb >>  0) & 0xFFFFFFFF) as u32);
 
         let mut words = [0 as u32; 80];
+        let (mut a, mut b, mut c, mut d, mut e);
         for mi in m.chunks(64) {
-            let mut a = self.state[0];
-            let mut b = self.state[1];
-            let mut c = self.state[2];
-            let mut d = self.state[3];
-            let mut e = self.state[4];
+            a = self.state[0];
+            b = self.state[1];
+            c = self.state[2];
+            d = self.state[3];
+            e = self.state[4];
             for t in 0..80 {
                 let (k,f) = match t {
                      0...19 => (0x5A827999, (b & c) | ((b ^ 0xFFFFFFFF) & d)),
