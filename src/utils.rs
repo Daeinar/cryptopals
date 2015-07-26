@@ -39,7 +39,7 @@ pub fn store64(x: u64) -> Vec<u8> {
 }
 
 // little endian
-pub fn load_be_u32(x: &[u8]) -> u32 {
+pub fn load_le_u32(x: &[u8]) -> u32 {
     return ((x[0] as u32) <<  0) |
            ((x[1] as u32) <<  8) |
            ((x[2] as u32) << 16) |
