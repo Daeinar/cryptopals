@@ -24,10 +24,10 @@ pub fn random_u32() -> u32 {
     rng.gen::<u32>()
 }
 
-pub fn print_bytes(x: &[u8]) {
+pub fn print_bytes(x: &[u8], n: usize) {
     for i in 0..x.len() {
         print!("{:02X} ", x[i]);
-        if i % 16 == 15 {
+        if i % n == n-1 {
             println!("");
         }
     }

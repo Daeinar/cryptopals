@@ -15,7 +15,7 @@ mod test {
         for i in 0..512 {
             msg[i] = (i & 0xFF) as u8;
             sha1.reset();
-            sha1.update(&msg[0..i+1]);
+            sha1.update(&msg[0..i+1], 0);
             sha1.output(&mut out);
             assert_eq!(hex(&out),hex(&hash(Type::SHA1,&msg[0..i+1])));
         }

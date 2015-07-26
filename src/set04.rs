@@ -38,15 +38,16 @@ impl SHA1 {
         self.state = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
     }
 
-    pub fn set_state(&mut self, a: u32, b: u32, c: u32, d: u32, e: u32) {
-        self.state[0] = a;
-        self.state[1] = b;
-        self.state[2] = c;
-        self.state[3] = d;
-        self.state[4] = e;
+    pub fn set_state(&mut self, data: &[u8]) {
+        self.state[0] = load_be_u32(&data[ 0.. 4]);
+        self.state[1] = load_be_u32(&data[ 4.. 8]);
+        self.state[2] = load_be_u32(&data[ 8..12]);
+        self.state[3] = load_be_u32(&data[12..16]);
+        self.state[4] = load_be_u32(&data[16..20]);
     }
 
-    pub fn update(&mut self, data: &[u8]) {
+    // the offset is required for Challenge 29
+    pub fn update(&mut self, data: &[u8], off: usize) {
 
         fn rotl(x: u32, n: usize) -> u32 {
             (x << n) | (x >> (32 - n))
@@ -54,9 +55,9 @@ impl SHA1 {
 
         // pad message
         let l = data.len(); // byte length of input
-        let lb = l * 8; // bit length of input
+        let lb = (l + off) * 8; // bit length of input
         let mut m = data.to_vec();
-        m.extend(vec![0x00;8+1+(64-(l+8+1)%64)%64]);
+        m.extend(vec![0x00;8+1+(64-(l+off+8+1)%64)%64]);
         let ml = m.len();
         m[l] = 0x80;
         store_be_u32(&mut m[ml-8..ml-4],((lb >> 32) & 0xFFFFFFFF) as u32);
@@ -104,7 +105,18 @@ impl SHA1 {
     pub fn mac_update(&mut self, key: &[u8], data: &[u8]) {
         let mut combined = key.to_vec();
         combined.extend(data.to_vec());
-        self.update(&combined);
+        self.update(&combined, 0);
+    }
+
+    pub fn mac_verify(&mut self, key: &[u8], data: &[u8], t0: &[u8]) -> u8 {
+        let mut t1 = [0x00 as u8; 20];
+        self.mac_update(key, data);
+        self.output(&mut t1);
+        let mut result: u8 = 0;
+        for i in 0..20 {
+            result |= t0[i] ^ t1[i];
+        }
+        result
     }
 
     pub fn output(&self, out: &mut[u8]) {
@@ -114,3 +126,38 @@ impl SHA1 {
     }
 
 }
+
+
+pub struct SHA1Oracle { key: Vec<u8>, sha1: SHA1 }
+
+impl SHA1Oracle {
+    pub fn new() -> SHA1Oracle {
+        SHA1Oracle { key: random_bytes(16), sha1: SHA1::new() }
+    }
+    pub fn digest(&mut self, out: &mut[u8], data: &[u8]) {
+        self.sha1.reset();
+        self.sha1.mac_update(&self.key, &data);
+        self.sha1.output(out);
+    }
+    pub fn verify(&mut self, data: &[u8], tag: &[u8]) -> bool {
+        self.sha1.reset();
+        if self.sha1.mac_verify(&self.key, data, tag) == 0 {
+            return true;
+        }
+        false
+    }
+}
+
+// for glue padding
+pub fn md_pad(data: &[u8], off: usize) -> Vec<u8> {
+    let l = data.len(); // byte length of input
+    let lb = (l + off) * 8; // bit length of input
+    let mut m = data.to_vec();
+    m.extend(vec![0x00;8+1+(64-(l+off+8+1)%64)%64]);
+    let ml = m.len();
+    m[l] = 0x80;
+    store_be_u32(&mut m[ml-8..ml-4],((lb >> 32) & 0xFFFFFFFF) as u32);
+    store_be_u32(&mut m[ml-4..ml-0],((lb >>  0) & 0xFFFFFFFF) as u32);
+    m
+}
+
