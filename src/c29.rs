@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
 
-    use set04::{SHA1, SHA1Oracle, md_pad};
+    use set04::{SHA1, SHA1Oracle};
 
     #[test]
     fn test_c29() {
@@ -18,7 +18,7 @@ mod test {
 
         // set key byte offset (if not known just bruteforce it) and forge message
         let key_off = 16;
-        let mut forged_msg = md_pad(msg, key_off);
+        let mut forged_msg = sha1.pad(msg, key_off);
         let max_off = forged_msg.len() + key_off;
         forged_msg.extend(suffix.to_vec());
 
