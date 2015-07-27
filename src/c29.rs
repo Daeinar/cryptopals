@@ -12,9 +12,8 @@ mod test {
         let mut oracle = SHA1Oracle::new();
         oracle.digest(&mut tag, msg);
 
-        // init sha1 state with tag
+        // init sha1
         let mut sha1 = SHA1::new();
-        sha1.set_state(&tag);
 
         // set key byte offset (if not known just bruteforce it) and forge message
         let key_off = 16;
@@ -24,6 +23,7 @@ mod test {
 
         // forge tag
         let mut forged_tag = [0x00 as u8; 20];
+        sha1.set_state(&tag);
         sha1.update(suffix, max_off);
         sha1.output(&mut forged_tag);
 

@@ -34,9 +34,8 @@ mod test {
         let mut oracle = MD4Oracle::new();
         oracle.digest(&mut tag, msg);
 
-        // init md4 state with tag
+        // init md4
         let mut md4 = MD4::new();
-        md4.set_state(&tag);
 
         // set key byte offset (see MD4Oracle; if not known just bruteforce it) and forge message
         let key_off = 16;
@@ -46,6 +45,7 @@ mod test {
 
         // forge tag
         let mut forged_tag = [0x00 as u8; 16];
+        md4.set_state(&tag);
         md4.update(suffix, max_off);
         md4.output(&mut forged_tag);
 
