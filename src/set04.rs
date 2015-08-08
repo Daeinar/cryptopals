@@ -1,6 +1,8 @@
 use set02::{pkcs7_pad,pkcs7_unpad,aes128_cbc_encrypt,aes128_cbc_decrypt};
 use utils::{random_bytes,store_be_u32,load_be_u32,store_le_u32,load_le_u32};
 
+// test ed25519 ssh key
+
 pub struct CBCOracleKeyIV { key: Vec<u8> }
 
 impl CBCOracleKeyIV {
