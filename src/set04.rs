@@ -435,7 +435,7 @@ pub fn run_hmac_client() -> bool {
 
             tag[j] = i as u8;
 
-            // assemble the query
+            // assemble query
             let mut query = String::new();
             query.push_str("http://127.0.0.1:3000/test?data=");
             query.push_str(&String::from_utf8(data.to_vec()).unwrap());
