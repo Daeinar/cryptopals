@@ -1,3 +1,12 @@
+extern crate hyper;
+extern crate time;
+use std::thread;
+use self::hyper::{Client,Url};
+use self::hyper::header::Connection;
+use self::hyper::status::StatusCode;
+use self::hyper::server::{Server,Request,Response};
+use self::time::{PreciseTime};
+use set01::{xor,hex,unhex};
 use set02::{pkcs7_pad,pkcs7_unpad,aes128_cbc_encrypt,aes128_cbc_decrypt};
 use utils::{random_bytes,store_be_u32,load_be_u32,store_le_u32,load_le_u32};
 
@@ -124,6 +133,14 @@ impl SHA1 {
         for i in 0..5 {
             store_be_u32(&mut out[4*i..4*(i+1)], self.state[i]);
         }
+    }
+
+    pub fn hash(&mut self, data: &[u8]) -> Vec<u8> {
+        let mut out = vec![0 as u8; 20];
+        self.reset();
+        self.update(&data, 0);
+        self.output(&mut out);
+        return out;
     }
 
 }
@@ -329,4 +346,125 @@ impl MD4Oracle {
         false
     }
 }
+
+
+pub fn hmac_sha1(key: &[u8], data: &[u8]) -> Vec<u8> {
+
+    let mut sha1 = SHA1::new();
+
+    let b = 64; // SHA1 block size: 64 bytes
+    let mut i_key = match key.len() {
+        0...64 => key.to_vec(),
+            _  => sha1.hash(key)
+    };
+    let l = b - i_key.len();
+    i_key.extend(vec![0; l]);
+    let mut o_key_pad = xor(&vec![0x5c; b], &i_key);
+    let mut i_key_pad = xor(&vec![0x36; b], &i_key);
+    i_key_pad.extend(data);
+    o_key_pad.extend(sha1.hash(&i_key_pad));
+    return sha1.hash(&o_key_pad);
+}
+
+
+pub fn insecure_compare(x: &[u8], y: &[u8]) -> bool {
+    if x.len() != y.len() {
+        return false;
+    }
+    for i in 0..x.len() {
+        if x[i] != y[i] {
+            return false;
+        }
+        thread::sleep_ms(50); // decrease for challenge 32
+    }
+    return true;
+}
+
+
+pub fn run_hmac_server() {
+    thread::spawn(|| {
+
+        let address = "127.0.0.1:3000";
+
+        Server::http(address).unwrap().handle(move |req: Request, mut res: Response| {
+
+            let key = b"my secret key";
+
+            match req.method {
+                hyper::Get => {
+                    // parse GET query
+                    let mut url = String::new();
+                    url.push_str("http://");
+                    url.push_str(address);
+                    url.push_str(&req.uri.to_string());
+                    let queries = Url::query_pairs(&Url::parse(&url).unwrap()).unwrap();
+
+                    // we assume that queries have a fixed format
+                    let tag = hmac_sha1(key, queries[0].1.as_bytes());
+
+                    if !insecure_compare(&tag, &unhex(&queries[1].1)) {
+                        *res.status_mut() = StatusCode::InternalServerError;
+                    }
+                },
+                _ => {
+                    *res.status_mut() = StatusCode::MethodNotAllowed;
+                }
+            }
+        }).unwrap();
+    });
+}
+
+pub fn run_hmac_client() -> bool {
+
+    let client = Client::new();
+
+    // goal: given "data" find a valid "tag" using the server as an oracle exploiting timing leaks
+    let data = b"foo";
+
+    // a HMAC-SHA1 tag is 20 bytes long
+    let mut tag = vec![0 as u8; 20];
+
+    // increase for challenge 32
+    let num_queries = 2;
+
+    for j in 0..tag.len() {
+
+        let mut t = vec![0 as i64; 256];
+
+        for i in 0..256 {
+
+            tag[j] = i as u8;
+
+            // assemble the query
+            let mut query = String::new();
+            query.push_str("http://127.0.0.1:3000/test?data=");
+            query.push_str(&String::from_utf8(data.to_vec()).unwrap());
+            query.push_str("&tag=");
+            query.push_str(&hex(&tag));
+
+            for _ in 0..num_queries {
+                let start = PreciseTime::now();
+                let _ = client.get(&query).header(Connection::close()).send().unwrap();
+                let end = PreciseTime::now();
+                t[i] += start.to(end).num_microseconds().unwrap()
+            }
+        }
+        tag[j] = t.iter().enumerate().map(|(a,b)|(b,a)).max().unwrap().1 as u8;
+        println!("{}", hex(&tag));
+    }
+
+    // final verification
+    let mut query = String::new();
+    query.push_str("http://127.0.0.1:3000/test?data=");
+    query.push_str(&String::from_utf8(data.to_vec()).unwrap());
+    query.push_str("&tag=");
+    query.push_str(&hex(&tag));
+
+    let res = client.get(&query)
+        .header(Connection::close())
+        .send().unwrap();
+
+    return res.status == StatusCode::Ok;
+}
+
 

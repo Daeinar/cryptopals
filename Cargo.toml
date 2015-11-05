@@ -6,7 +6,12 @@ authors = ["Philipp Jovanovic <philipp@jovanovic.io>"]
 [dependencies]
 rand = "*"
 time = "*"
+nickel = "*"
+hyper = "*"
+openssl = "*"
+regex = "*"
+url = "*"
 
-[dependencies.openssl]
-git = "https://github.com/sfackler/rust-openssl.git"
+#[dependencies.openssl]
+#git = "https://github.com/sfackler/rust-openssl.git"
 
